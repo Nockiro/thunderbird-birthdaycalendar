@@ -4,7 +4,7 @@
 // suggested in issue #17 as suitable value to work around iOS and MS office
 // enforcing a concrete birth year if no actual year is known.
 const defaultAgeCutoffYear = 1604;
-
+const defaultSummaryTemplate = "%%NAME%% %%YEAR%%"
 let abList; // div containing the list of address books
 
 async function refreshAbList() {
@@ -34,6 +34,7 @@ addEventListener('load', () => (async () => {
   const separator = '$this string is unlikely to occur in any locale file@';
   let settings = await BC.getGlobalSettings();
 
+  // build age calculaion
   const ageYearsLabel = document.createElement("label");
   const ageYearsText1 = ageYearsLabel.appendChild(document.createTextNode(""));
   const ageYearsText2 = document.createTextNode("");
@@ -71,6 +72,7 @@ addEventListener('load', () => (async () => {
   ageYearsLabel.appendChild(ageYearsText2);
   document.body.appendChild(ageYearsLabel);
 
+  // build age cutoff
   const ageCutoffLabel = document.createElement("label");
   const ageCutoffCheckbox = document.createElement("input");
   ageCutoffCheckbox.type = "checkbox";
@@ -100,6 +102,34 @@ addEventListener('load', () => (async () => {
   })().catch(console.error);
   ageCutoffYear.addEventListener("change", ageCutoffUpdate);
   ageCutoffCheckbox.addEventListener("click", ageCutoffUpdate);
+
+  // build summary temmplate
+  const summaryTemplateLabel = document.createElement("label");
+  const summaryTemplateCheckbox = document.createElement("input");
+  summaryTemplateCheckbox.type = "checkbox";
+  summaryTemplateCheckbox.checked = !!settings.summaryTemplate;
+  summaryTemplateLabel.appendChild(summaryTemplateCheckbox);
+  summaryTemplateLabel.appendChild(document.createTextNode(Mi.getMessage(
+      "summaryTemplate1")));
+  const summaryTemplate = document.createElement("input");
+  summaryTemplate.type = "text";
+  summaryTemplate.value = settings.summaryTemplate ?? defaultSummaryTemplate;
+  summaryTemplate.size = 35;
+  summaryTemplate.disabled = !settings.summaryTemplate;
+  summaryTemplateLabel.appendChild(summaryTemplate);
+  document.body.appendChild(summaryTemplateLabel);
+  const summaryTemplateUpdate = () => (async () => {
+    if (summaryTemplateCheckbox.checked) {
+      settings.summaryTemplate = summaryTemplate.value;
+      summaryTemplate.disabled = false;
+    } else {
+      settings.summaryTemplate = null;
+      summaryTemplate.disabled = true;
+    }
+    await BC.setGlobalSettings(settings);
+  })().catch(console.error);
+  summaryTemplate.addEventListener("change", summaryTemplateUpdate);
+  summaryTemplateCheckbox.addEventListener("click", summaryTemplateUpdate);
 
   document.body.appendChild(document.createElement("hr"));
 

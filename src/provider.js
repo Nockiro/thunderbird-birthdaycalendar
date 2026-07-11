@@ -50,6 +50,7 @@ Mc.provider.onSync.addListener(async (cal) => {
     let bDay = null;
     let bMonth = null;
     let bYear = null;
+    console.log(contact.properties);
     if (contact.properties.hasOwnProperty("vCard")) {
       // Thunderbird 102+ introduced raw vCard access and deprecated the use
       // of Birth* properties. We thus prefer vCard if present, though we only
@@ -113,19 +114,40 @@ Mc.provider.onSync.addListener(async (cal) => {
       ical += "UID:" + icalStrip(contact.id) + "-" + year + "\n" + dtStamp;
 
       ical += "SUMMARY:" + icalStrip(name);
-      if (year > bYear) {
-        // This is an exception to the regular event, containing the exact
-        // age for this particular year
-        ical += (bYear ? " (" + (year - bYear) + ")" : "") + "\n";
+      ical += "SUMMARY:";
+
+      // determine summary template string - possible parameters: %%YEAR%% and %%NAME%%
+      let summaryTemplate = "%%NAME%% %%YEAR%%";
+      if (settings.summaryTemplate)
+      {
+        summaryTemplate = settings.summaryTemplate;
+      }
+
+      // build real summary
+      let yearTemplateReplacement = "";
+      let nameTemplateReplacement = icalStrip(name);
+
+       if (year > bYear) {
+         // This is an exception to the regular event, containing the exact
+         // age for this particular year
+         yearTemplateReplacement = (bYear ? "(" + (year - bYear) + ")" : "")
+       } else {
+         // This is the main event with the recurrence rule. Contains the birth
+         // year iff it is set and we do not display ages anywhere
+         if (!settings.yearsToDisplayAgeFor && bYear) {
+           yearTemplateReplacement = "(" + bYear + ")";
+        }        
+      }
+      
+      ical += summaryTemplate
+        .replace("%%YEAR%%", yearTemplateReplacement)
+        .replace("%%NAME%%", nameTemplateReplacement)
+        + "\n";
+
+      if (year <= bYear) {
         // If we had recurrence exception support, we'd also add
         // "RECURRENCE-ID;VALUE=DATE:" + icalDate(instanceDate) + "\n"
-      } else {
-        // This is the main event with the recurrence rule. Contains the birth
-        // year iff it is set and we do not display ages anywhere
-        if (!settings.yearsToDisplayAgeFor && bYear) {
-          ical += " (" + bYear + ")";
-        }
-        ical += "\nRRULE:FREQ=YEARLY\n";
+        ical += "RRULE:FREQ=YEARLY\n";
         // As we don't have real recurrence exceptions, we need to explicitly
         // exclude all dates with 'exceptions' in the main event:
         if (years.length > 1) {

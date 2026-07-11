@@ -72,7 +72,8 @@ const BC = {};
   BC.getGlobalSettings = async function() {
     return await Msl.get({
       yearsToDisplayAgeFor: 2,
-      ageCutoffYear: null
+      ageCutoffYear: null,
+      summaryTemplate: "%%NAME%% %%YEAR%%"
     });
   };
 
