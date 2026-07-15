@@ -60,9 +60,11 @@ Mc.provider.onSync.addListener(async (cal) => {
           // per RFC 6350 and assuming the type is DATE or DATE-TIME, there are
           // two relevant date formats (there are others that do not include
           // both day and month, but we're not interested in them):
-          // YYYYMMDD   (ISO 8601:2004 4.1.2.2 basic), 
-          // YYYY-MM-DD (ISO 8601:2004 4.1.2.2 extended),
-          // --MMDD     (ISO 8601:2000 5.2.1.3 d basic), 
+          // YYYYMMDD   (ISO 8601:2004 4.1.2.2 basic)
+          // --MMDD     (ISO 8601:2000 5.2.1.3 d basic)
+          // older versions of vCard also permit other formats via RFC 2425,
+          // which has less stringent requirements. We thus also support:
+          // YYYY-MM-DD (ISO 8601:2004 4.1.2.2 extended)
           // --MM-DD    (ISO 8601:2000 5.2.1.3 d extended)
           + "(--|[0-9]{4})-?([0-9]{2})-?([0-9]{2})"
           // which can be optionally followed by a time separated by 'T'
